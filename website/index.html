@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HoverManager Mod Store</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <header>
+        <div class="logo">
+            <a href="#" id="homeButton">HoverManager</a>
+        </div>
+        <div class="user-info">
+            <button id="uploadModButton">UPLOAD Mod</button>
+        </div>
+    </header>
+
+    <!-- Mod Upload Form -->
+    <div id="uploadModForm" style="display:none;">
+        <h2>Upload a Mod</h2>
+        <input type="text" id="modName" placeholder="Mod Name">
+        <input type="url" id="githubLink" placeholder="GitHub Repository URL">
+        <button onclick="uploadMod()">Submit</button>
+        <button onclick="cancelUpload()">Cancel</button>
+    </div>
+
+    <!-- Mod Listing Section -->
+    <div id="modList">
+        <h2>Uploaded Mods</h2>
+        <div id="modContainer"></div>
+    </div>
+
+    <!-- Mod Details Modal -->
+    <div id="modDetailsModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span id="closeModal" class="close">&times;</span>
+            <h2 id="modNameDisplay"></h2>
+            <p id="modDescription"></p>
+            <div id="modImages"></div>
+            <p>Created by: <span id="creatorName"></span></p>
+            <button id="downloadButton">Download</button>
+            <button id="goToGitHubButton">Go to GitHub</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
