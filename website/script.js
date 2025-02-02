@@ -1,125 +1,113 @@
-// Show Mod Upload Form
-document.getElementById("uploadModButton").onclick = function() {
-    document.getElementById("uploadModForm").style.display = "block";
-};
+// GitHub repository information
+const githubRepoURL = 'https://raw.githubusercontent.com/TheVrEnthusiast/HoverMangerBackend/main/mods.txt'; // URL to raw mods.txt file
+const token = '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';  // Your GitHub token for authentication
+const repoOwner = 'TheVrEnthusiast';  // Your GitHub username
+const repoName = 'HoverMangerBackend';  // Your GitHub repository name
+const filePath = 'mods.txt';  // Path to the mods.txt file in the repo
+const branch = 'main';  // The branch (usually 'main')
 
-// Initialize the mod list from localStorage (if it exists)
-let modList = JSON.parse(localStorage.getItem("modList")) || [];
+// Fetch the mod list from GitHub
+async function fetchModList() {
+    const response = await fetch(githubRepoURL);
+    const text = await response.text();
+    const modList = text.split("\n").map(line => {
+        const [name, link] = line.split(" | ");
+        return { name, link };
+    });
 
-// Display all mods when the page is loaded
-window.onload = function() {
-    displayAllMods();
-};
+    // Display mods on the page
+    const modListContainer = document.getElementById('modList');
+    modListContainer.innerHTML = '';  // Clear existing list
+    modList.forEach(mod => {
+        const modItem = document.createElement('li');
+        modItem.innerHTML = `
+            <h3>${mod.name}</h3>
+            <a href="${mod.link}" target="_blank">View Mod</a>
+            <button onclick="downloadMod('${mod.link}')">Download</button>
+        `;
+        modListContainer.appendChild(modItem);
+    });
+}
 
-// Upload Mod Functionality (updated to store data in localStorage)
-// Upload Mod Functionality (updated to store data in localStorage and get the first PNG image)
-function uploadMod() {
-    const modName = document.getElementById("modName").value;
-    const githubLink = document.getElementById("githubLink").value;
+// Handle uploading a new mod
+async function uploadMod() {
+    const modName = document.getElementById('modName').value;
+    const modGithubLink = document.getElementById('modGithubLink').value;
 
-    // Validate inputs
-    if (!modName || !githubLink) {
-        alert("Please provide both a mod name and a GitHub link.");
+    if (!modName || !modGithubLink) {
+        alert("Please fill in both fields!");
         return;
     }
 
-    // Extract the GitHub repo owner and repo name from the URL (assuming format: github.com/user/repo)
-    const repoParts = githubLink.split('/');
-    const owner = repoParts[3];
-    const repo = repoParts[4];
+    // Create the new mod data in the format "mod name | github link"
+    const modData = `${modName} | ${modGithubLink}\n`;
 
-    // Fetch the README.md file from GitHub
-    fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/README.md`)
-        .then(response => response.text())
-        .then(readmeContent => {
-            // Extract image URL from README content (only PNG images)
-            const imageUrls = extractImageUrls(readmeContent);
-            const modData = {
-                name: modName,
-                description: "Description from README.md",
-                images: imageUrls,
-                creator: owner,
-                downloadUrl: `${githubLink}/releases/latest/download/mod.zip`,
-                githubLink: githubLink
-            };
+    // Update the GitHub file with the new mod data
+    await updateGitHubFile(modData);
 
-            // Store the mod data in the list and update localStorage
-            modList.push(modData);
-            localStorage.setItem("modList", JSON.stringify(modList));
+    // Clear the input fields
+    document.getElementById('modName').value = '';
+    document.getElementById('modGithubLink').value = '';
 
-            // Display the updated mod list
-            displayMod(modData);
+    // Re-fetch the mod list and display it again
+    fetchModList();
+    
+    // Close the upload form after successful upload
+    toggleUploadForm();
+}
 
-            // Hide upload form after submission
-            document.getElementById("uploadModForm").style.display = "none";
-            document.getElementById("modName").value = "";
-            document.getElementById("githubLink").value = "";
+// Function to update the mods.txt file on GitHub using GitHub API
+async function updateGitHubFile(newModData) {
+    // Fetch the current file contents from GitHub to get the SHA
+    const response = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}?ref=${branch}`);
+    const data = await response.json();
+    const sha = data.sha;  // SHA hash of the file, needed to update it
+
+    // Prepare the new mod data (base64 encode the content)
+    const commitMessage = 'Add new mod to the list';
+    const updatedContent = btoa(newModData);  // Base64 encode the new mod data
+
+    // Send the PUT request to update the file
+    const updateResponse = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `token ${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            message: commitMessage,
+            content: updatedContent,
+            sha: sha,
+            branch: branch
         })
-        .catch(error => {
-            console.error('Error fetching README:', error);
-        });
+    });
+
+    const result = await updateResponse.json();
+    console.log(result);
 }
 
-// Extract PNG image URLs from README content (Markdown image format)
-function extractImageUrls(readmeContent) {
-    const regex = /!\[.*?\]\((https:\/\/.*?\.png)\)/g;  // Look specifically for PNG images
-    let imageUrls = [];
-    let match;
-    while ((match = regex.exec(readmeContent)) !== null) {
-        imageUrls.push(match[1]);
+// Trigger the upload function when the user clicks "Upload Mod"
+document.getElementById('uploadModBtn').addEventListener('click', uploadMod);
+
+// Toggle upload mod form visibility
+document.getElementById('uploadModBtnHeader').addEventListener('click', toggleUploadForm);
+document.getElementById('closeUploadFormBtn').addEventListener('click', toggleUploadForm);
+
+// Function to toggle the visibility of the upload form
+function toggleUploadForm() {
+    const uploadForm = document.getElementById('uploadModContainer');
+    if (uploadForm.style.display === 'none') {
+        uploadForm.style.display = 'block';
+    } else {
+        uploadForm.style.display = 'none';
     }
-    return imageUrls;
 }
 
+// Fetch and display mod list when the page loads
+window.onload = fetchModList;
 
-// Display Mod in Mod List (same as before)
-function displayMod(mod) {
-    const modContainer = document.getElementById("modContainer");
-    const modElement = document.createElement("div");
-    modElement.classList.add("modItem");
-    modElement.innerHTML = `
-        <img src="${mod.images[0]}" alt="Mod Icon" style="width:100%;">
-        <h3>${mod.name}</h3>
-        <p>${mod.description.slice(0, 50)}...</p>
-    `;
-    modElement.onclick = function() {
-        openModDetails(mod);
-    };
-    modContainer.appendChild(modElement);
+// Download mod (this is a placeholder, you would implement this with GitHub links)
+function downloadMod(githubLink) {
+    alert(`Downloading from: ${githubLink}`);
+    // In a real scenario, you'd want to fetch the release file from the GitHub API
 }
-
-// Display all mods stored in localStorage
-function displayAllMods() {
-    const modContainer = document.getElementById("modContainer");
-    modContainer.innerHTML = ""; // Clear existing mods before displaying
-    modList.forEach(mod => {
-        displayMod(mod);
-    });
-}
-
-// Open Mod Details Modal (same as before)
-function openModDetails(mod) {
-    document.getElementById("modNameDisplay").innerText = mod.name;
-    document.getElementById("modDescription").innerText = mod.description;
-    document.getElementById("creatorName").innerText = mod.creator;
-    document.getElementById("downloadButton").onclick = () => window.location.href = mod.downloadUrl;
-    document.getElementById("goToGitHubButton").onclick = () => window.open(mod.githubLink, '_blank');
-
-    let imagesHtml = '';
-    mod.images.forEach(image => {
-        imagesHtml += `<img src="${image}" alt="Mod Image" style="width: 100px; margin: 5px;">`;
-    });
-    document.getElementById("modImages").innerHTML = imagesHtml;
-
-    document.getElementById("modDetailsModal").style.display = "block";
-}
-
-// Close Modal (same as before)
-document.getElementById("closeModal").onclick = function() {
-    document.getElementById("modDetailsModal").style.display = "none";
-};
-
-// Home Button Clicked (same as before)
-document.getElementById("homeButton").onclick = function() {
-    window.location.reload();
-};

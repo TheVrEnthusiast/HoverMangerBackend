@@ -3,48 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HoverManager Mod Store</title>
+    <title>HoverManager - Mod Store</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Navigation Bar -->
     <header>
-        <div class="logo">
-            <a href="#" id="homeButton">HoverManager</a>
-        </div>
-        <div class="user-info">
-            <button id="uploadModButton">UPLOAD Mod</button>
-        </div>
+        <div id="logo">HoverManager</div>
+        <button id="homeBtn">Home</button>
+        <button id="uploadModBtnHeader">Upload Mod</button>  <!-- Button to open the upload menu -->
     </header>
 
-    <!-- Mod Upload Form -->
-    <div id="uploadModForm" style="display:none;">
-        <h2>Upload a Mod</h2>
-        <input type="text" id="modName" placeholder="Mod Name">
-        <input type="url" id="githubLink" placeholder="GitHub Repository URL">
-        <button onclick="uploadMod()">Submit</button>
-        <button onclick="cancelUpload()">Cancel</button>
-    </div>
+    <main>
+        <!-- Mod List Section -->
+        <section id="modListContainer">
+            <h2>Mod List</h2>
+            <ul id="modList"></ul>
+        </section>
 
-    <!-- Mod Listing Section -->
-    <div id="modList">
-        <h2>Uploaded Mods</h2>
-        <div id="modContainer"></div>
-    </div>
+        <!-- Hidden Upload Mod Form -->
+        <section id="uploadModContainer" style="display:none;">
+            <h2>Upload Mod</h2>
+            <input type="text" id="modName" placeholder="Mod Name">
+            <input type="text" id="modGithubLink" placeholder="GitHub Link">
+            <button id="uploadModBtn">Upload Mod</button>
+            <button id="closeUploadFormBtn">Close</button>  <!-- Button to close upload form -->
+        </section>
+    </main>
 
-    <!-- Mod Details Modal -->
-    <div id="modDetailsModal" class="modal" style="display:none;">
-        <div class="modal-content">
-            <span id="closeModal" class="close">&times;</span>
-            <h2 id="modNameDisplay"></h2>
-            <p id="modDescription"></p>
-            <div id="modImages"></div>
-            <p>Created by: <span id="creatorName"></span></p>
-            <button id="downloadButton">Download</button>
-            <button id="goToGitHubButton">Go to GitHub</button>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
+    <script src="scripts.js"></script>
 </body>
 </html>
