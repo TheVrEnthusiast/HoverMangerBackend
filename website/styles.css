@@ -1,4 +1,4 @@
-/* General Page Styling */
+
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -23,7 +23,6 @@ button {
     cursor: pointer;
 }
 
-/* Mod List Section */
 #modList {
     margin: 20px;
 }
@@ -46,7 +45,6 @@ button {
     text-decoration: none;
 }
 
-/* Modal Styling */
 .modal {
     display: none;
     position: fixed;
