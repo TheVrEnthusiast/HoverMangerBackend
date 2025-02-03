@@ -7,18 +7,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const modGitHubInput = document.getElementById("modGitHub");
     const modsContainer = document.getElementById("modsContainer");
 
-    // GitHub API settings
-    const GITHUB_USERNAME = "TheVrEnthusiast";
-    const GITHUB_REPO = "HoverMangerBackend";
-    const FILE_PATH = "mods.txt";
-    const GITHUB_TOKEN = "YOUR_GITHUB_TOKEN"; // Replace with the correct GitHub token (use environment variable or fetch it securely)
-
-    // Open Upload Mod Menu
+    // Open the modal when the "Upload Mod" button is clicked
     uploadButton.addEventListener("click", () => {
         modal.style.display = "block";
     });
 
-    // Close Upload Mod Menu
+    // Close the modal when the close button or background is clicked
     closeModal.addEventListener("click", () => {
         modal.style.display = "none";
     });
@@ -29,58 +23,46 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Upload Mod Function (Updates mods.txt)
-    async function updateModsFile(newMod) {
-        const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${FILE_PATH}`;
-
-        try {
-            // Get current file SHA (needed for updating a file)
-            const response = await fetch(url, {
-                headers: { Authorization: `token ${GITHUB_TOKEN}` }
-            });
-            const fileData = await response.json();
-            const currentContent = atob(fileData.content); // Decode Base64 content
-
-            // Append new mod
-            const updatedContent = currentContent + `\n${newMod.name} | ${newMod.link}`;
-            const encodedContent = btoa(updatedContent); // Encode to Base64
-
-            // Update file on GitHub
-            await fetch(url, {
-                method: "PUT",
-                headers: {
-                    "Authorization": `token ${GITHUB_TOKEN}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    message: "Added new mod",
-                    content: encodedContent,
-                    sha: fileData.sha // Required to overwrite file
-                })
-            });
-
-            alert("Mod uploaded successfully!");
-            loadMods(); // Reload mods
-        } catch (error) {
-            console.error("Error uploading mod:", error);
-        }
-    }
-
-    // Handle Upload Button Click
+    // Handle the mod submission (trigger GitHub Action)
     submitButton.addEventListener("click", () => {
         const modName = modNameInput.value.trim();
         const modGitHub = modGitHubInput.value.trim();
-        
+
         if (modName && modGitHub) {
-            updateModsFile({ name: modName, link: modGitHub });
+            triggerGitHubAction(modName, modGitHub);
         } else {
             alert("Please fill in all fields.");
         }
     });
 
-    // Load Mods from mods.txt
+    // Function to trigger GitHub Action to update the mods.txt file
+    async function triggerGitHubAction(modName, modGitHub) {
+        const response = await fetch('https://api.github.com/repos/TheVrEnthusiast/HoverMangerBackend/actions/workflows/update-mods.yml/dispatches', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                ref: 'main',  // Ensure this is the correct branch (usually 'main')
+                inputs: {
+                    MOD_NAME: modName,
+                    MOD_LINK: modGitHub
+                }
+            })
+        });
+
+        if (response.ok) {
+            alert('Mod uploaded successfully!');
+        } else {
+            console.error('Failed to trigger GitHub action');
+            console.error(await response.text());
+        }
+    }
+
+    // Load the list of mods from the mods.txt file
     function loadMods() {
-        fetch(`https://raw.githubusercontent.com/${GITHUB_USERNAME}/${GITHUB_REPO}/main/${FILE_PATH}`)
+        fetch('https://raw.githubusercontent.com/TheVrEnthusiast/HoverMangerBackend/mods/mods.txt')
             .then(response => response.text())
             .then(data => {
                 modsContainer.innerHTML = "";
@@ -96,5 +78,5 @@ document.addEventListener("DOMContentLoaded", function () {
             .catch(error => console.error("Error loading mods:", error));
     }
 
-    loadMods(); // Load mods when page loads
+    loadMods();  // Load mods on page load
 });
