@@ -3,37 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HoverManger Mod Store</title>
-    <link rel="stylesheet" href="style.css">
+    <title>HoverManager - Mod Store</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
-        <button id="uploadModBtnHeader">Upload Mod</button>
-        <button id="homeBtn">Home</button>
+        <h1>HoverManager</h1>
+        <button id="uploadModButton">Upload Mod</button>
     </header>
+    
+    <main>
+        <section id="modList">
+            <h2>Available Mods</h2>
+            <div id="modsContainer"></div>
+        </section>
+    </main>
 
-    <!-- Upload Mod Form (Initially Hidden) -->
-    <div id="uploadModContainer" class="modal" style="display: none;">
-        <h3>Upload New Mod</h3>
-        <label for="modName">Mod Name</label>
-        <input type="text" id="modName" placeholder="Enter Mod Name">
-        <label for="modGithubLink">GitHub Link</label>
-        <input type="url" id="modGithubLink" placeholder="Enter Mod GitHub Link">
-        <button id="uploadModBtn">Upload Mod</button>
-        <button id="closeUploadFormBtn">Cancel</button>
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Upload Mod</h2>
+            <input type="text" id="modName" placeholder="Mod Name">
+            <input type="text" id="modGitHub" placeholder="GitHub Repo Link">
+            <button id="submitMod">Submit</button>
+        </div>
     </div>
 
-    <!-- Mod List Section -->
-    <div id="modListContainer">
-        <h2>Mods</h2>
-        <ul id="modList"></ul>
-    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const uploadButton = document.getElementById("uploadModButton");
+            const modal = document.getElementById("uploadModal");
+            const closeModal = document.querySelector(".close");
+            const submitButton = document.getElementById("submitMod");
+            const modNameInput = document.getElementById("modName");
+            const modGitHubInput = document.getElementById("modGitHub");
+            const modsContainer = document.getElementById("modsContainer");
 
-    <div id="modDetailContainer" style="display: none;">
-        <button id="backToModListBtn">Back to Mod List</button>
-        <div id="modDetail"></div>
-    </div>
+            // GitHub API settings
+            const GITHUB_USERNAME = "TheVrEnthusiast";
+            const GITHUB_REPO = "HoverMangerBackend";
+            const FILE_PATH = "mods.txt";
+            const GITHUB_TOKEN = "your_token_here"; // Add your GitHub token here (DO NOT EXPOSE IT PUBLICLY)
 
-    <script src="script.js"></script>
+            // Open Upload Mod Menu
+            uploadButton.addEventListener("click", () => {
+                modal.style.display = "block";
+            });
+
+            // Close Upload Mod Menu
+            closeModal.addEventListener("click", () => {
+                modal.style.display = "none";
+            });
+
+            window.addEventListener("click", (event) => {
+                if (event.target === modal) {
+                    modal.style.display = "none";
+                }
+            });
+
+            // Upload Mod Function (Updates mods.txt)
+            async function updateModsFile(newMod) {
+                const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${FILE_PATH}`;
+
+                try {
+                    // Get current file SHA (needed for updating a file)
+                    const response = await fetch(url, {
+                        headers: { Authorization: `token ${GITHUB_TOKEN}` }
+                    });
+                    const fileData = await response.json();
+                    const currentContent = atob(fileData.content); // Decode Base64 content
+
+                    // Append new mod
+                    const updatedContent = currentContent + `\n${newMod.name} | ${newMod.link}`;
+                    const encodedContent = btoa(updatedContent); // Encode to Base64
+
+                    // Update file on GitHub
+                    await fetch(url, {
+                        method: "PUT",
+                        headers: {
+                            "Authorization": `token ${GITHUB_TOKEN}`,
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            message: "Added new mod",
+                            content: encodedContent,
+                            sha: fileData.sha // Required to overwrite file
+                        })
+                    });
+
+                    alert("Mod uploaded successfully!");
+                    loadMods(); // Reload mods
+                } catch (error) {
+                    console.error("Error uploading mod:", error);
+                }
+            }
+
+            // Handle Upload Button Click
+            submitButton.addEventListener("click", () => {
+                const modName = modNameInput.value.trim();
+                const modGitHub = modGitHubInput.value.trim();
+                
+                if (modName && modGitHub) {
+                    updateModsFile({ name: modName, link: modGitHub });
+                } else {
+                    alert("Please fill in all fields.");
+                }
+            });
+
+            // Load Mods from mods.txt
+            function loadMods() {
+                fetch(`https://raw.githubusercontent.com/${GITHUB_USERNAME}/${GITHUB_REPO}/main/${FILE_PATH}`)
+                    .then(response => response.text())
+                    .then(data => {
+                        modsContainer.innerHTML = "";
+                        const mods = data.split("\n").filter(line => line.trim() !== "");
+                        mods.forEach(modEntry => {
+                            const [modName, modLink] = modEntry.split(" | ");
+                            const modElement = document.createElement("div");
+                            modElement.classList.add("mod-item");
+                            modElement.innerHTML = `<h3>${modName}</h3><a href="${modLink}" target="_blank">GitHub</a>`;
+                            modsContainer.appendChild(modElement);
+                        });
+                    })
+                    .catch(error => console.error("Error loading mods:", error));
+            }
+
+            loadMods(); // Load mods when page loads
+        });
+    </script>
 </body>
 </html>

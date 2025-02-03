@@ -1,84 +1,54 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #f4f4f9;
     margin: 0;
     padding: 0;
+    background-color: #f4f4f4;
 }
 
 header {
-    background-color: #333;
+    background: #222;
     color: white;
-    padding: 1em;
-    text-align: center;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 button {
-    padding: 10px 20px;
-    margin: 10px;
-    background-color: #007BFF;
+    background: #28a745;
     color: white;
     border: none;
+    padding: 10px 15px;
     cursor: pointer;
-    border-radius: 5px;
 }
 
-button:hover {
-    background-color: #0056b3;
+#modList {
+    margin: 20px;
+}
+
+.mod-item {
+    background: white;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 5px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
 }
 
 .modal {
+    display: none;
     position: fixed;
-    top: 0;
+    z-index: 1;
     left: 0;
+    top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background: white;
+    margin: 15% auto;
     padding: 20px;
-}
-
-#modListContainer {
-    margin-top: 20px;
-    padding: 10px;
-}
-
-#modList li {
-    background-color: white;
-    padding: 15px;
-    margin-bottom: 10px;
+    width: 300px;
     border-radius: 5px;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-#modList li a {
-    display: block;
-    margin-bottom: 10px;
-    color: #007BFF;
-    text-decoration: none;
-}
-
-#modList li button {
-    background-color: #28a745;
-}
-
-#modList li button:hover {
-    background-color: #218838;
-}
-
-#modDetailContainer {
-    margin-top: 20px;
-    padding: 10px;
-}
-
-#modDetail h3 {
-    font-size: 24px;
-    margin-bottom: 10px;
-}
-
-#modDetail img {
-    max-width: 100%;
-    margin-bottom: 10px;
 }

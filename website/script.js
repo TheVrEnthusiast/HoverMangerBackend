@@ -1,139 +1,100 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const uploadModBtnHeader = document.getElementById('uploadModBtnHeader');
-    const closeUploadFormBtn = document.getElementById('closeUploadFormBtn');
-    const uploadModBtn = document.getElementById('uploadModBtn');
-    const modNameInput = document.getElementById('modName');
-    const modGithubLinkInput = document.getElementById('modGithubLink');
-    const modListContainer = document.getElementById('modList');
-    const modListContainerElem = document.getElementById('modListContainer');
-    const modDetailContainer = document.getElementById('modDetailContainer');
-    const modDetailElem = document.getElementById('modDetail');
-    const backToModListBtn = document.getElementById('backToModListBtn');
-    const uploadForm = document.getElementById('uploadModContainer');
+document.addEventListener("DOMContentLoaded", function () {
+    const uploadButton = document.getElementById("uploadModButton");
+    const modal = document.getElementById("uploadModal");
+    const closeModal = document.querySelector(".close");
+    const submitButton = document.getElementById("submitMod");
+    const modNameInput = document.getElementById("modName");
+    const modGitHubInput = document.getElementById("modGitHub");
+    const modsContainer = document.getElementById("modsContainer");
 
-    // Toggle the Upload Form
-    uploadModBtnHeader.addEventListener('click', toggleUploadForm);
-    closeUploadFormBtn.addEventListener('click', toggleUploadForm);
+    // GitHub API settings
+    const GITHUB_USERNAME = "TheVrEnthusiast";
+    const GITHUB_REPO = "HoverMangerBackend";
+    const FILE_PATH = "mods.txt";
+    const GITHUB_TOKEN = "YOUR_GITHUB_TOKEN"; // Replace with the correct GitHub token (use environment variable or fetch it securely)
 
-    // Upload Mod Logic
-    uploadModBtn.addEventListener('click', async () => {
-        const modName = modNameInput.value;
-        const modGithubLink = modGithubLinkInput.value;
+    // Open Upload Mod Menu
+    uploadButton.addEventListener("click", () => {
+        modal.style.display = "block";
+    });
 
-        if (!modName || !modGithubLink) {
-            alert("Please fill in both fields!");
-            return;
+    // Close Upload Mod Menu
+    closeModal.addEventListener("click", () => {
+        modal.style.display = "none";
+    });
+
+    window.addEventListener("click", (event) => {
+        if (event.target === modal) {
+            modal.style.display = "none";
         }
-
-        const modData = `${modName} | ${modGithubLink}\n`;
-        await updateGitHubFile(modData);
-        fetchModList(); // Refresh mod list
-
-        modNameInput.value = '';
-        modGithubLinkInput.value = '';
-        toggleUploadForm(); // Hide the upload form after successful upload
     });
 
-    // Go back to the mod list
-    backToModListBtn.addEventListener('click', () => {
-        modListContainerElem.style.display = 'block';
-        modDetailContainer.style.display = 'none';
+    // Upload Mod Function (Updates mods.txt)
+    async function updateModsFile(newMod) {
+        const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${FILE_PATH}`;
+
+        try {
+            // Get current file SHA (needed for updating a file)
+            const response = await fetch(url, {
+                headers: { Authorization: `token ${GITHUB_TOKEN}` }
+            });
+            const fileData = await response.json();
+            const currentContent = atob(fileData.content); // Decode Base64 content
+
+            // Append new mod
+            const updatedContent = currentContent + `\n${newMod.name} | ${newMod.link}`;
+            const encodedContent = btoa(updatedContent); // Encode to Base64
+
+            // Update file on GitHub
+            await fetch(url, {
+                method: "PUT",
+                headers: {
+                    "Authorization": `token ${GITHUB_TOKEN}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    message: "Added new mod",
+                    content: encodedContent,
+                    sha: fileData.sha // Required to overwrite file
+                })
+            });
+
+            alert("Mod uploaded successfully!");
+            loadMods(); // Reload mods
+        } catch (error) {
+            console.error("Error uploading mod:", error);
+        }
+    }
+
+    // Handle Upload Button Click
+    submitButton.addEventListener("click", () => {
+        const modName = modNameInput.value.trim();
+        const modGitHub = modGitHubInput.value.trim();
+        
+        if (modName && modGitHub) {
+            updateModsFile({ name: modName, link: modGitHub });
+        } else {
+            alert("Please fill in all fields.");
+        }
     });
 
-    // Fetch Mod List when page loads
-    fetchModList();
-});
-
-// Toggle the visibility of the upload form
-function toggleUploadForm() {
-    const uploadForm = document.getElementById('uploadModContainer');
-    if (uploadForm.style.display === 'none' || uploadForm.style.display === '') {
-        uploadForm.style.display = 'flex';
-    } else {
-        uploadForm.style.display = 'none';
-    }
-}
-
-// Fetch the mod list from GitHub and display it
-async function fetchModList() {
-    try {
-        const response = await fetch('https://raw.githubusercontent.com/TheVrEnthusiast/HoverMangerBackend/main/mods.txt');
-        const text = await response.text();
-        const modList = text.split("\n").map(line => {
-            const [name, link] = line.split(" | ");
-            return { name, link };
-        });
-
-        modListContainer.innerHTML = '';
-        modList.forEach(mod => {
-            const modItem = document.createElement('li');
-            modItem.innerHTML = `
-                <h3>${mod.name}</h3>
-                <a href="${mod.link}" target="_blank">View Mod</a>
-                <button onclick="viewModDetail('${mod.name}', '${mod.link}')">View Details</button>
-            `;
-            modListContainer.appendChild(modItem);
-        });
-    } catch (error) {
-        console.error("Error fetching mod list:", error);
-    }
-}
-
-// Show mod details when clicked
-async function viewModDetail(modName, modLink) {
-    modListContainerElem.style.display = 'none';
-    modDetailContainer.style.display = 'block';
-
-    modDetailElem.innerHTML = `
-        <h3>${modName}</h3>
-        <p><a href="${modLink}" target="_blank">View Mod on GitHub</a></p>
-        <button id="downloadModBtn" onclick="downloadMod('${modLink}')">Download</button>
-    `;
-
-    // Fetch readme file for description and image (optional)
-    const readmeLink = `${modLink}/blob/main/README.md`; // Modify if necessary
-    modDetailElem.innerHTML += `<p>Description from <a href="${readmeLink}" target="_blank">README</a></p>`;
-}
-
-// Download mod logic
-async function downloadMod(modLink) {
-    const releasesApiUrl = `${modLink}/releases/latest`;
-    try {
-        const response = await fetch(releasesApiUrl);
-        const releaseData = await response.json();
-        const downloadUrl = releaseData.assets[0].browser_download_url; // Assuming the first asset is the download file
-        window.location.href = downloadUrl;
-    } catch (error) {
-        console.error("Error fetching mod release:", error);
-    }
-}
-
-// Update the mods.txt file in GitHub
-async function updateGitHubFile(newModData) {
-    try {
-        const response = await fetch('https://api.github.com/repos/TheVrEnthusiast/HoverMangerBackend/contents/mods.txt');
-        const data = await response.json();
-        const sha = data.sha;
-
-        const commitMessage = 'Add new mod to the list';
-        const updatedContent = btoa(newModData);  // Convert newModData to base64
-
-        const updateResponse = await fetch('https://api.github.com/repos/TheVrEnthusiast/HoverMangerBackend/contents/mods.txt', {
-            method: 'PUT',
-            headers: {
-                'Authorization': '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',  // Replace with your actual GitHub token
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                message: commitMessage,
-                content: updatedContent,
-                sha: sha
+    // Load Mods from mods.txt
+    function loadMods() {
+        fetch(`https://raw.githubusercontent.com/${GITHUB_USERNAME}/${GITHUB_REPO}/main/${FILE_PATH}`)
+            .then(response => response.text())
+            .then(data => {
+                modsContainer.innerHTML = "";
+                const mods = data.split("\n").filter(line => line.trim() !== "");
+                mods.forEach(modEntry => {
+                    const [modName, modLink] = modEntry.split(" | ");
+                    const modElement = document.createElement("div");
+                    modElement.classList.add("mod-item");
+                    modElement.innerHTML = `<h3>${modName}</h3><a href="${modLink}" target="_blank">GitHub</a>`;
+                    modsContainer.appendChild(modElement);
+                });
             })
-        });
-
-        const result = await updateResponse.json();
-        console.log(result);  // Log the response from GitHub to ensure the file was updated
-    } catch (error) {
-        console.error("Error updating GitHub file:", error);
+            .catch(error => console.error("Error loading mods:", error));
     }
-}
+
+    loadMods(); // Load mods when page loads
+});
