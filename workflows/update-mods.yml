@@ -1,0 +1,35 @@
+name: Update Mods
+
+on:
+  workflow_dispatch: # Triggered manually via GitHub UI or through an API request
+
+jobs:
+  update-mods:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Update mods.txt
+        run: |
+          MOD_NAME="${{ secrets.MOD_NAME }}"
+          MOD_LINK="${{ secrets.MOD_LINK }}"
+          
+          # Fetch the current contents of mods.txt
+          FILE_CONTENT=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -s https://api.github.com/repos/${{ github.repository }}/contents/mods.txt)
+
+          # Decode and append the new mod
+          MODS_CONTENT=$(echo $FILE_CONTENT | jq -r '.content' | base64 --decode)
+          UPDATED_CONTENT="${MODS_CONTENT}\n${MOD_NAME} | ${MOD_LINK}"
+
+          # Encode the updated content
+          ENCODED_CONTENT=$(echo "$UPDATED_CONTENT" | base64)
+
+          # Update the file on GitHub
+          curl -X PUT \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"message\": \"Add new mod\", \"content\": \"$ENCODED_CONTENT\", \"sha\": \"${{ steps.get_sha.outputs.sha }}\"}" \
+            "https://api.github.com/repos/${{ github.repository }}/contents/mods.txt"
