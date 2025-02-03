@@ -7,10 +7,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const modGitHubInput = document.getElementById("modGitHub");
     const modsContainer = document.getElementById("modsContainer");
 
-    const GITHUB_USERNAME = "TheVrEnthusiast";
-    const GITHUB_REPO = "HoverMangerBackend";
-    const FILE_PATH = "mods.txt";
-
     // Open Upload Mod Menu
     uploadButton.addEventListener("click", () => {
         modal.style.display = "block";
@@ -27,24 +23,24 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Upload Mod Function (Triggers GitHub Action)
+    // Function to trigger GitHub Action
     async function triggerGitHubAction(modName, modGitHub) {
         const url = "https://api.github.com/repos/TheVrEnthusiast/HoverMangerBackend/dispatches";
-    
+
         try {
             const response = await fetch(url, {
                 method: "POST",
                 headers: {
                     "Accept": "application/vnd.github.everest-preview+json",
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${GITHUB_TOKEN}` // Uses the secret token
+                    "Authorization": `Bearer TOKEN_PLACEHOLDER` // This will be replaced with the GitHub Action secret
                 },
                 body: JSON.stringify({
                     event_type: "update-mods",
                     client_payload: { mod_name: modName, mod_link: modGitHub }
                 })
             });
-    
+
             if (response.ok) {
                 alert("Mod uploaded successfully! It may take a moment to appear.");
                 loadMods();
@@ -57,13 +53,12 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error("Error uploading mod:", error);
         }
     }
-    
 
     // Handle Upload Button Click
     submitButton.addEventListener("click", () => {
         const modName = modNameInput.value.trim();
         const modGitHub = modGitHubInput.value.trim();
-
+        
         if (modName && modGitHub) {
             triggerGitHubAction(modName, modGitHub);
         } else {
@@ -73,7 +68,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Load Mods from mods.txt
     function loadMods() {
-        fetch(`https://raw.githubusercontent.com/${GITHUB_USERNAME}/${GITHUB_REPO}/main/${FILE_PATH}`)
+        fetch(`https://raw.githubusercontent.com/TheVrEnthusiast/HoverMangerBackend/main/mods.txt`)
             .then(response => response.text())
             .then(data => {
                 modsContainer.innerHTML = "";
