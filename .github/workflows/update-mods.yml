@@ -1,0 +1,27 @@
+name: Update Mods
+
+on:
+  repository_dispatch:
+    types: [update-mods]
+
+jobs:
+  update-mods-file:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Update mods.txt
+        run: |
+          echo "${{ github.event.client_payload.mod_name }} | ${{ github.event.client_payload.mod_link }}" >> mods.txt
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add mods.txt
+          git commit -m "Added new mod"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN_FOR_GIT }}

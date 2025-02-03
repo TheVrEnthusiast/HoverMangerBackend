@@ -1,0 +1,22 @@
+name: Update Mods
+
+on:
+  workflow_dispatch:  # This allows manual triggering via API or GitHub UI
+
+jobs:
+  update-mods:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+
+      - name: Update mods.txt file
+        run: |
+          echo "${{ github.event.inputs.MOD_NAME }} | ${{ github.event.inputs.MOD_LINK }}" >> mods/mods.txt
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add mods/mods.txt
+          git commit -m "Add new mod: ${{ github.event.inputs.MOD_NAME }}"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub token for authentication
