@@ -3,33 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HoverManager - Mod Store</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>HoverManger Mod Store</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>
-        <div id="logo">HoverManager</div>
+        <button id="uploadModBtnHeader">Upload Mod</button>
         <button id="homeBtn">Home</button>
-        <button id="uploadModBtnHeader">Upload Mod</button>  <!-- Button to open the upload menu -->
     </header>
 
-    <main>
-        <!-- Mod List Section -->
-        <section id="modListContainer">
-            <h2>Mod List</h2>
-            <ul id="modList"></ul>
-        </section>
+    <!-- Upload Mod Form (Initially Hidden) -->
+    <div id="uploadModContainer" class="modal" style="display: none;">
+        <h3>Upload New Mod</h3>
+        <label for="modName">Mod Name</label>
+        <input type="text" id="modName" placeholder="Enter Mod Name">
+        <label for="modGithubLink">GitHub Link</label>
+        <input type="url" id="modGithubLink" placeholder="Enter Mod GitHub Link">
+        <button id="uploadModBtn">Upload Mod</button>
+        <button id="closeUploadFormBtn">Cancel</button>
+    </div>
 
-        <!-- Hidden Upload Mod Form -->
-        <section id="uploadModContainer" style="display:none;">
-            <h2>Upload Mod</h2>
-            <input type="text" id="modName" placeholder="Mod Name">
-            <input type="text" id="modGithubLink" placeholder="GitHub Link">
-            <button id="uploadModBtn">Upload Mod</button>
-            <button id="closeUploadFormBtn">Close</button>  <!-- Button to close upload form -->
-        </section>
-    </main>
+    <!-- Mod List Section -->
+    <div id="modListContainer">
+        <h2>Mods</h2>
+        <ul id="modList"></ul>
+    </div>
 
-    <script src="scripts.js"></script>
+    <div id="modDetailContainer" style="display: none;">
+        <button id="backToModListBtn">Back to Mod List</button>
+        <div id="modDetail"></div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
