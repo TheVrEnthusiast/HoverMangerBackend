@@ -21,21 +21,22 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    // Handle the mod submission
     submitButton.addEventListener("click", async () => {
         const modName = modNameInput.value.trim();
         const modGitHub = modGitHubInput.value.trim();
 
         if (modName && modGitHub) {
             try {
-                const response = await fetch('https://api.github.com/repos/YourUsername/YourRepo/actions/workflows/update-mods.yml/dispatches', {
+                // Trigger the GitHub Action to update mods.txt file
+                const response = await fetch('https://api.github.com/repos/TheVrEnthusiast/HoverMangerBackend/actions/workflows/update-mods.yml/dispatches', {
                     method: 'POST',
                     headers: {
-                        'Authorization': `token YOUR_PERSONAL_GITHUB_TOKEN`,  // Your token is used server-side, not here.
                         'Accept': 'application/vnd.github.v3+json',
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        ref: 'main',  // or the default branch of your repository
+                        ref: 'main',  // Or your default branch
                         inputs: {
                             MOD_NAME: modName,
                             MOD_LINK: modGitHub
@@ -47,19 +48,20 @@ document.addEventListener("DOMContentLoaded", function () {
                     alert('Mod uploaded successfully!');
                 } else {
                     console.error('Failed to trigger GitHub action');
+                    alert('Failed to upload mod. Please try again.');
                 }
             } catch (error) {
                 console.error('Error triggering GitHub action:', error);
+                alert('An error occurred. Please try again later.');
             }
         } else {
             alert("Please fill in all fields.");
         }
     });
 
-    loadMods();
-
+    // Load the list of mods
     function loadMods() {
-        fetch('https://raw.githubusercontent.com/YourUsername/YourRepo/main/mods.txt')
+        fetch('https://raw.githubusercontent.com/TheVrEnthusiast/HoverMangerBackend/main/mods/mods.txt')
             .then(response => response.text())
             .then(data => {
                 modsContainer.innerHTML = "";
@@ -74,4 +76,6 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .catch(error => console.error("Error loading mods:", error));
     }
+
+    loadMods(); // Load mods when page loads
 });
