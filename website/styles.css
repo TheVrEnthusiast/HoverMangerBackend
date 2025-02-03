@@ -1,0 +1,45 @@
+/* Basic styles for the page */
+body {
+    font-family: Arial, sans-serif;
+}
+
+button {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    margin: 10px 0;
+    font-size: 16px;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* The modal (hidden by default) */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure it stays on top of everything */
+}
+
+/* Modal content styling */
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 100%;
+}
+
+.hidden {
+    display: none;
+}
